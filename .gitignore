@@ -36,6 +36,10 @@ ScaffoldingReadMe.txt
 # NuGet Symbol Packages
 *.snupkg
 
+#Visual studio files
+.vs/
+*.user
+
 # Others
 ~$*
 *~
@@ -52,3 +56,55 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# VS Code directories
+.vscode/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# Ignore build output directories
+/build/
+/*.elf
+/*.bin
+/*.map
+
+# Ignore object files and dependency files
+*.o
+*.d
+
+# Ignore VS Code specific files
+.vscode/
+*.code-workspace
+
+# Ignore FreeRTOS generated files
+freertos/FreeRTOSConfig.h
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore core dumps and debug files
+*.core
+*.gdb
+
+# Ignore system files
+.DS_Store
+Thumbs.db
