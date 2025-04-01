@@ -12,10 +12,35 @@ namespace ButtonBoxServer
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            int retryCount = _config.Retries;
-
             using SerialPort serialPort = new SerialPort(_config.PortName, _config.BaudRate);
+            var retries = await OpenPort(serialPort, _config.Retries, stoppingToken);
+            if (retries == 0) return;
 
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var data = serialPort.ReadLine();
+                try
+                {
+                    int button = Convert.ToInt32(data);
+
+                    if (_config.Actions.TryGetValue(button, out var script))
+                    {
+                        Console.WriteLine($"Button {button} pressed, executing script: {script}");
+                        await Task.Run(() => ExecuteScript(script), stoppingToken);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Button {button} pressed, no action configured");
+                    }
+                }
+                catch (FormatException) { } //ignore non-numeric data
+            }
+
+            serialPort.Close();
+        }
+
+        private async Task<int> OpenPort(SerialPort serialPort, int retryCount, CancellationToken stoppingToken)
+        {
             while (!stoppingToken.IsCancellationRequested && !serialPort.IsOpen && retryCount > 0)
             {
                 try
@@ -35,30 +60,10 @@ namespace ButtonBoxServer
                 }
             }
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                var data = serialPort.ReadLine();
-                try
-                {
-                    int button = Convert.ToInt32(data);
-
-                    if (_config.Actions.TryGetValue(button, out var script))
-                    {
-                        Console.WriteLine($"Button {button} pressed, executing script: {script}");
-                        await Task.Run(() => ExecuteScript(script, stoppingToken));
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Button {button} pressed, no action configured");
-                    }
-                }
-                catch (FormatException) { }
-            }
-
-            serialPort.Close();
+            return retryCount;
         }
 
-        private async Task ExecuteScript(string script, CancellationToken stoppingToken)
+        private async Task ExecuteScript(string script)
         {
             using PowerShell powerShell = PowerShell.Create();
 
@@ -70,11 +75,6 @@ namespace ButtonBoxServer
             powerShell.Commands.Clear();
 
             powerShell.AddScript(script);
-            if (stoppingToken.IsCancellationRequested)
-            {
-                return;
-            }
-
             var result = await powerShell.InvokeAsync();
 
             foreach (var item in result)

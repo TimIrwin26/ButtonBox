@@ -2,9 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Configuration;
 using Serilog;
-using Serilog.Extensions.Logging;
 
 namespace ButtonBoxServer
 {
@@ -17,7 +15,7 @@ namespace ButtonBoxServer
         static void Main()
         {
             var host = CreateHostBuilder().Build();
-            var task = Task.Run(() => host.RunAsync());
+            Task.Run(() => host.RunAsync());
             ApplicationConfiguration.Initialize();
             Application.Run(new ButtonBoxServerApplicationContext());
             host.Dispose();
@@ -39,7 +37,7 @@ namespace ButtonBoxServer
                     services.AddHostedService<ButtonBoxListener>();
 
                     var serilogLogger = new LoggerConfiguration()
-                            .ReadFrom.Configuration(configuration)
+                            .ReadFrom.Configuration(configuration)                           
 #if DEBUG
                             .WriteTo.Debug()
 #endif
